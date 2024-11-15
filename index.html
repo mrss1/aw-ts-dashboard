@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Troubleshooting Checklist</title>
+<style>
+    /* General styling */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+    }
+
+    h1 {
+        text-align: center;
+        color: #4A90E2;
+    }
+
+    .container {
+        background-color: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        width: 100%;
+        max-width: 600px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-weight: bold;
+        color: #4A90E2;
+    }
+
+    select, textarea {
+        width: calc(100% - 2px); /* Adjusted width to avoid overflow on right side */
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-top: 5px;
+        font-size: 16px;
+    }
+
+    select {
+        cursor: pointer;
+    }
+
+    textarea {
+        resize: none;
+        background-color: #f9f9f9;
+    }
+
+    .text-area-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Styling for the result text areas */
+    textarea[readonly] {
+        background-color: #f0f8ff;
+        font-size: 15px;
+        font-family: Arial, sans-serif;
+        color: #333;
+        padding: 10px;
+        box-sizing: border-box; /* Ensures padding does not add to width */
+    }
+
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Troubleshooting Checklist for iPhone/iPad in AirWatch</h1>
+
+    <div class="form-group">
+        <label for="failurePoint">Failure Point</label>
+        <select id="failurePoint" onchange="updateSymptoms()">
+            <option value="">Select Failure Point</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="symptom">Symptom</label>
+        <select id="symptom" onchange="populateDetails()">
+            <option value="">Select Symptom</option>
+        </select>
+    </div>
+
+    <div class="text-area-container">
+        <div class="form-group">
+            <label for="correctiveSteps">Corrective Steps</label>
+            <textarea id="correctiveSteps" rows="4" readonly></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="cause">Cause</label>
+            <textarea id="cause" rows="2" readonly></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Notes</label>
+            <textarea id="notes" rows="2" readonly></textarea>
+        </div>
+    </div>
+</div>
+
+<script>
+// Data structure holding troubleshooting information
+const troubleshootingData = {
+    "Re-enter Password": {
+        "Prompt to enter username is not given": {
+            "Cause": "Wrong username was entered",
+            "CorrectiveSteps": "Clear Safari 'History and Website Data' > Settings > Safari",
+            "Notes": "If the wrong username is entered and 'Remember this setting' is checked, prompt will not be given again."
+        },
+        "Error 'Enter message' is given after entering username": {
+            "Cause": "Request Desktop Website is turned On",
+            "CorrectiveSteps": "Turn 'All Websites' Off > Settings > Safari > Request Desktop Website",
+            "Notes": "For iPads, some iOS versions have this setting turned on by default. Must be turned off to access MyPaylinks."
+        },
+        "Microsoft Authenticator installed": {
+            "Cause": "Microsoft Authenticator is installed",
+            "CorrectiveSteps": "Airwatch console App tab, have user uninstall Authenticator that is not 'Managed'",
+            "Notes": "App can be re-installed after password is updated."
+        }
+    },
+    "Email not Syncing": {
+        "No new emails, Unable to connect to WiFi, Other apps may lose internet access": {
+            "Cause": "Device record in AW Console needs to be deleted for use by another user",
+            "CorrectiveSteps": "Reset Network Settings > Settings > General > Transfer or Reset iPhone > Reset > Reset Network Settings > Enter passcode > Reset Network Settings",
+            "Notes": "This problem is a result of a device switch."
+        }
+    }
+};
+
+// Populate Failure Point dropdown
+function populateFailurePoints() {
+    const failurePointSelect = document.getElementById("failurePoint");
+    for (const failurePoint in troubleshootingData) {
+        const option = document.createElement("option");
+        option.value = failurePoint;
+        option.textContent = failurePoint;
+        failurePointSelect.appendChild(option);
+    }
+}
+
+// Update Symptom dropdown based on selected Failure Point
+function updateSymptoms() {
+    const symptomSelect = document.getElementById("symptom");
+    const correctiveStepsField = document.getElementById("correctiveSteps");
+    const causeField = document.getElementById("cause");
+    const notesField = document.getElementById("notes");
+
+    // Clear existing options in Symptom dropdown
+    symptomSelect.innerHTML = '<option value="">Select Symptom</option>';
+    correctiveStepsField.value = '';
+    causeField.value = '';
+    notesField.value = '';
+
+    const selectedFailurePoint = document.getElementById("failurePoint").value;
+    if (selectedFailurePoint && troubleshootingData[selectedFailurePoint]) {
+        const symptoms = troubleshootingData[selectedFailurePoint];
+        for (const symptom in symptoms) {
+            const option = document.createElement("option");
+            option.value = symptom;
+            option.textContent = symptom;
+            symptomSelect.appendChild(option);
+        }
+    }
+}
+
+// Populate Corrective Steps, Cause, and Notes based on selected Symptom
+function populateDetails() {
+    const failurePoint = document.getElementById("failurePoint").value;
+    const symptom = document.getElementById("symptom").value;
+    const correctiveStepsField = document.getElementById("correctiveSteps");
+    const causeField = document.getElementById("cause");
+    const notesField = document.getElementById("notes");
+
+    if (failurePoint && symptom && troubleshootingData[failurePoint][symptom]) {
+        const details = troubleshootingData[failurePoint][symptom];
+        correctiveStepsField.value = details.CorrectiveSteps;
+        causeField.value = details.Cause;
+        notesField.value = details.Notes;
+    } else {
+        correctiveStepsField.value = '';
+        causeField.value = '';
+        notesField.value = '';
+    }
+}
+
+// Clear all fields on page load
+function clearFields() {
+    document.getElementById("failurePoint").selectedIndex = 0;
+    document.getElementById("symptom").innerHTML = '<option value="">Select Symptom</option>';
+    document.getElementById("correctiveSteps").value = '';
+    document.getElementById("cause").value = '';
+    document.getElementById("notes").value = '';
+}
+
+// Initialize Failure Point dropdown and clear fields on page load
+window.onload = function() {
+    populateFailurePoints();
+    clearFields();
+};
+</script>
+
+</body>
+</html>
